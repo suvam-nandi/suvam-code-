@@ -1,0 +1,174 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<title>Car Racing Game</title>
+<style>
+body{
+    margin:0;
+    overflow:hidden;
+    background:#222;
+}
+#gameArea{
+    width:400px;
+    height:100vh;
+    background:#555;
+    margin:auto;
+    position:relative;
+    overflow:hidden;
+    border-left:5px solid white;
+    border-right:5px solid white;
+}
+.line{
+    position:absolute;
+    width:10px;
+    height:100px;
+    background:white;
+    left:195px;
+}
+.car{
+    position:absolute;
+    width:50px;
+    height:90px;
+    background:red;
+    bottom:20px;
+    left:175px;
+    border-radius:10px;
+}
+.enemy{
+    position:absolute;
+    width:50px;
+    height:90px;
+    background:blue;
+    border-radius:10px;
+}
+#score{
+    position:absolute;
+    top:10px;
+    left:10px;
+    color:white;
+    font-size:24px;
+    z-index:100;
+}
+</style>
+</head>
+<body>
+
+<div id="score">Score: 0</div>
+
+<div id="gameArea">
+    <div class="car" id="player"></div>
+</div>
+
+<script>
+const gameArea = document.getElementById("gameArea");
+const player = document.getElementById("player");
+const scoreDisplay = document.getElementById("score");
+
+let score = 0;
+let gameOver = false;
+
+let playerData = {
+    x:175,
+    y:0,
+    speed:5
+};
+
+let keys = {
+    ArrowLeft:false,
+    ArrowRight:false
+};
+
+document.addEventListener("keydown",e=>{
+    if(keys.hasOwnProperty(e.key))
+        keys[e.key]=true;
+});
+
+document.addEventListener("keyup",e=>{
+    if(keys.hasOwnProperty(e.key))
+        keys[e.key]=false;
+});
+
+for(let i=0;i<5;i++){
+    let line=document.createElement("div");
+    line.classList.add("line");
+    line.y=i*150;
+    line.style.top=line.y+"px";
+    gameArea.appendChild(line);
+}
+
+for(let i=0;i<3;i++){
+    let enemy=document.createElement("div");
+    enemy.classList.add("enemy");
+    enemy.y=(i+1)*-300;
+    enemy.style.left=Math.floor(Math.random()*350)+"px";
+    enemy.style.top=enemy.y+"px";
+    gameArea.appendChild(enemy);
+}
+
+function moveLines(){
+    document.querySelectorAll(".line").forEach(line=>{
+        line.y += playerData.speed;
+        if(line.y > window.innerHeight){
+            line.y -= 750;
+        }
+        line.style.top=line.y+"px";
+    });
+}
+
+function moveEnemies(){
+    document.querySelectorAll(".enemy").forEach(enemy=>{
+        enemy.y += playerData.speed;
+
+        if(collision(player,enemy)){
+            gameOver=true;
+            alert("Game Over! Score: "+score);
+            location.reload();
+        }
+
+        if(enemy.y > window.innerHeight){
+            enemy.y=-300;
+            enemy.style.left=Math.floor(Math.random()*350)+"px";
+        }
+
+        enemy.style.top=enemy.y+"px";
+    });
+}
+
+function collision(a,b){
+    let aRect=a.getBoundingClientRect();
+    let bRect=b.getBoundingClientRect();
+
+    return !(
+        aRect.bottom < bRect.top ||
+        aRect.top > bRect.bottom ||
+        aRect.right < bRect.left ||
+        aRect.left > bRect.right
+    );
+}
+
+function gamePlay(){
+    if(gameOver) return;
+
+    moveLines();
+    moveEnemies();
+
+    if(keys.ArrowLeft && playerData.x>0)
+        playerData.x -= playerData.speed+2;
+
+    if(keys.ArrowRight && playerData.x<350)
+        playerData.x += playerData.speed+2;
+
+    player.style.left=playerData.x+"px";
+
+    score++;
+    scoreDisplay.innerHTML="Score: "+score;
+
+    requestAnimationFrame(gamePlay);
+}
+
+gamePlay();
+</script>
+
+</body>
+</html>
